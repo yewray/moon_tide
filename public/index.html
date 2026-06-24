@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chiba Moon and Tide</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <main class="app-shell">
+        <header class="toolbar">
+            <div>
+                <h1>Chiba Moon and Tide</h1>
+                <p>Moon altitude and JMA tide height, JST, 2026-2027</p>
+            </div>
+            <form id="controls" class="controls">
+                <div class="date-controls">
+                    <button id="shiftMonthBack" class="icon-button wide-icon-button" type="button" title="Previous month" aria-label="Previous month">&lt;&lt;</button>
+                    <button id="shiftBack" class="icon-button" type="button" title="Previous day" aria-label="Previous day">‹</button>
+                    <label>
+                        Start
+                        <input id="startDate" name="start" type="date" min="2026-01-01" max="2027-12-31" value="2026-07-01">
+                    </label>
+                    <label>
+                        Start hour
+                        <select id="startHour" name="startHour"></select>
+                    </label>
+                    <label>
+                        End
+                        <input id="endDate" name="end" type="date" min="2026-01-01" max="2027-12-31" value="2026-07-03">
+                    </label>
+                    <label>
+                        End hour
+                        <select id="endHour" name="endHour"></select>
+                    </label>
+                    <button type="submit">Refresh</button>
+                    <button id="shiftForward" class="icon-button" type="button" title="Next day" aria-label="Next day">›</button>
+                    <button id="shiftMonthForward" class="icon-button wide-icon-button" type="button" title="Next month" aria-label="Next month">&gt;&gt;</button>
+                </div>
+                <div class="option-controls">
+                    <label class="checkbox-label">
+                        <input id="invertTideY" name="invertTideY" type="checkbox">
+                        Invert tide Y
+                    </label>
+                    <label class="checkbox-label">
+                        <input id="hideMoonBelowZero" name="hideMoonBelowZero" type="checkbox">
+                        Hide moon &lt; 0
+                    </label>
+                    <label class="checkbox-label">
+                        <input id="absoluteMoonAltitude" name="absoluteMoonAltitude" type="checkbox">
+                        Absolute moon
+                    </label>
+                    <label class="checkbox-label">
+                        <input id="hideMoonAfterZenith" name="hideMoonAfterZenith" type="checkbox">
+                        Hide moon after zenith
+                    </label>
+                    <label class="checkbox-label">
+                        <input id="nightWindowOnly" name="nightWindowOnly" type="checkbox">
+                        20:00-04:00 only
+                    </label>
+                </div>
+            </form>
+        </header>
+
+        <section class="status-row">
+            <div id="status" class="status">Ready</div>
+        </section>
+
+        <section class="chart-panel">
+            <svg id="moonChart" class="chart" role="img" aria-label="Moon altitude chart"></svg>
+            <svg id="tideChart" class="chart" role="img" aria-label="Tide height chart"></svg>
+        </section>
+    </main>
+
+    <script src="/app.js" type="module"></script>
+</body>
+</html>
