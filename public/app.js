@@ -196,33 +196,35 @@ function shiftMonthString(value, months) {
 
 function render(data) {
     const useAbsoluteMoon = absoluteMoonAltitudeInput.checked;
+    const rawMoonPoints = data.moon.map((point) => ({
+        time: Date.parse(point.time),
+        altitudeDeg: point.altitudeDeg,
+        value: useAbsoluteMoon ? Math.abs(point.altitudeDeg) : point.altitudeDeg
+    }));
     const moonZenithEvents = data.events.moonZeniths.map((event) => ({
         time: Date.parse(event.time),
         value: useAbsoluteMoon ? Math.abs(event.altitudeDeg) : event.altitudeDeg,
         label: `Zenith ${formatTime(event.time)} ${(useAbsoluteMoon ? Math.abs(event.altitudeDeg) : event.altitudeDeg).toFixed(1)}°`,
         className: event.type
     }));
-    const moonPoints = filterMoonAfterZenith(data.moon.map((point) => ({
-        time: Date.parse(point.time),
-        value: useAbsoluteMoon ? Math.abs(point.altitudeDeg) : point.altitudeDeg
-    })), moonZenithEvents);
+    const moonPoints = filterMoonAfterZenith(rawMoonPoints, moonZenithEvents);
     const tidePoints = data.tide.map((point) => ({
         time: Date.parse(point.time),
         value: point.heightM
     }));
 
-    if (moonPoints.length === 0 || tidePoints.length === 0) {
+    if (rawMoonPoints.length === 0 || tidePoints.length === 0) {
         clearSvg(moonSvg);
         clearSvg(tideSvg);
-        setStatus('No data in selected 20:00-04:00 window.', true);
+        setStatus('No data in selected range.', true);
         return;
     }
 
     statusEl.classList.remove('error');
 
-    const minTime = Math.min(moonPoints[0].time, tidePoints[0].time);
+    const minTime = Math.min(rawMoonPoints[0].time, tidePoints[0].time);
     const maxTime = Math.max(
-        moonPoints[moonPoints.length - 1].time,
+        rawMoonPoints[rawMoonPoints.length - 1].time,
         tidePoints[tidePoints.length - 1].time
     );
 
@@ -235,8 +237,8 @@ function render(data) {
         points: moonPoints,
         minTime,
         maxTime,
-        yMin: Math.min(-20, floorTo(Math.min(...moonPoints.map((point) => point.value)), 10)),
-        yMax: Math.max(80, ceilTo(Math.max(...moonPoints.map((point) => point.value)), 10)),
+        yMin: Math.min(-20, floorTo(Math.min(...rawMoonPoints.map((point) => point.value)), 10)),
+        yMax: Math.max(80, ceilTo(Math.max(...rawMoonPoints.map((point) => point.value)), 10)),
         pathClass: 'moon-path',
         fillClass: 'moon-fill',
         baseline: 0,
@@ -288,7 +290,7 @@ function filterMoonEventsAfterZenith(events) {
 }
 
 function filterMoonAfterZenith(points, zenithEvents) {
-    if (!hideMoonAfterZenithInput.checked || zenithEvents.length === 0) {
+    if (!hideMoonAfterZenithInput.checked) {
         return points;
     }
 
@@ -301,14 +303,14 @@ function filterMoonAfterZenith(points, zenithEvents) {
         }
 
         if (previous && point.time - previous.time > 90 * 60 * 1000) {
-            return next ? next.value >= point.value : true;
+            return next ? next.altitudeDeg >= point.altitudeDeg : true;
         }
 
         if (next && next.time - point.time <= 90 * 60 * 1000) {
-            return next.value >= point.value;
+            return next.altitudeDeg >= point.altitudeDeg;
         }
 
-        return previous ? point.value >= previous.value : true;
+        return previous ? point.altitudeDeg >= previous.altitudeDeg : true;
     });
 }
 
