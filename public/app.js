@@ -7,6 +7,7 @@ const shiftBackButton = document.querySelector('#shiftBack');
 const shiftForwardButton = document.querySelector('#shiftForward');
 const startHourInput = document.querySelector('#startHour');
 const endHourInput = document.querySelector('#endHour');
+const showChartLabelsInput = document.querySelector('#showChartMarkers');
 const invertTideYInput = document.querySelector('#invertTideY');
 const hideMoonBelowZeroInput = document.querySelector('#hideMoonBelowZero');
 const absoluteMoonAltitudeInput = document.querySelector('#absoluteMoonAltitude');
@@ -45,6 +46,12 @@ shiftMonthBackButton.addEventListener('click', () => {
 
 shiftMonthForwardButton.addEventListener('click', () => {
     shiftMonthRange(1);
+});
+
+showChartLabelsInput.addEventListener('change', () => {
+    if (window.latestData) {
+        render(window.latestData);
+    }
 });
 
 invertTideYInput.addEventListener('change', () => {
@@ -196,6 +203,7 @@ function shiftMonthString(value, months) {
 
 function render(data) {
     const useAbsoluteMoon = absoluteMoonAltitudeInput.checked;
+    const showChartLabels = showChartLabelsInput.checked;
     const rawMoonPoints = data.moon.map((point) => ({
         time: Date.parse(point.time),
         altitudeDeg: point.altitudeDeg,
@@ -244,6 +252,7 @@ function render(data) {
         baseline: 0,
         hideBelow: hideMoonBelowZeroInput.checked ? 0 : null,
         dimOutsideNightWindow: nightWindowOnlyInput.checked,
+        showEventLabels: showChartLabels,
         events: filterMoonEventsAfterZenith([
             ...data.events.moonRiseSet.map((event) => ({
                 time: Date.parse(event.time),
@@ -272,6 +281,7 @@ function render(data) {
         baseline: Math.min(...tidePoints.map((point) => point.value)),
         invertY: invertTideYInput.checked,
         dimOutsideNightWindow: nightWindowOnlyInput.checked,
+        showEventLabels: showChartLabels,
         events: data.events.tideExtrema.map((event) => ({
             time: Date.parse(event.time),
             value: event.heightM,
@@ -374,8 +384,10 @@ function renderLineChart(svg, options) {
         const dimmedEvent = options.dimOutsideNightWindow && !isNightWindowTime(event.time);
         const className = `${event.className}${dimmedEvent ? ' dimmed-event' : ''}`;
         appendCircle(svg, cx, cy, 5, className);
-        const labelY = event.className === 'low' || event.className === 'set' ? cy - 12 : cy + 20;
-        appendText(svg, clamp(cx - 42, margin.left, width - margin.right - 84), labelY, event.label, `event-label ${className}`);
+        if (options.showEventLabels !== false) {
+            const labelY = event.className === 'low' || event.className === 'set' ? cy - 12 : cy + 20;
+            appendText(svg, clamp(cx - 42, margin.left, width - margin.right - 84), labelY, event.label, `event-label ${className}`);
+        }
     }
 
     appendLine(svg, margin.left, height - margin.bottom, width - margin.right, height - margin.bottom, 'axis');
